@@ -4,23 +4,31 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    // Récupération des valeurs des champs
     const lieu = document.getElementById("lieu").value;
-    const description = document.getElementById("description").value;
     const date = document.getElementById("date").value;
+    const chantier = document.getElementById("chantier").value;
+    const centrale = document.getElementById("centrale").value;
+    const entreprise = document.getElementById("entreprise").value;
+    const description = document.getElementById("description").value;
+    const techniciens = document.getElementById("techniciens").value;
     const heureDebut = document.getElementById("horaire-debut").value;
     const heureFin = document.getElementById("horaire-fin").value;
-    const techniciens = document.getElementById("techniciens").value;
 
     const duree = calculerDuree(heureDebut, heureFin);
 
+    // Appel pour générer le PDF
     genererPDF(
       lieu,
-      description,
       date,
+      chantier,
+      centrale,
+      entreprise,
+      description,
+      techniciens,
       heureDebut,
       heureFin,
-      duree,
-      techniciens
+      duree
     );
   });
 
@@ -38,7 +46,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${heures}h ${minutes}min`;
   }
 
-  function genererPDF(lieu, description, date, debut, fin, duree, techniciens) {
+  function genererPDF(
+    lieu,
+    date,
+    chantier,
+    centrale,
+    entreprise,
+    description,
+    techniciens,
+    debut,
+    fin,
+    duree
+  ) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
@@ -47,72 +66,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pdf.setFontSize(12);
 
-    pdf.text("Lieu d'intervention :", 20, 30);
-    pdf.text(lieu, 70, 30);
+    const leftX = 20;
+    const rightX = 120;
+    let y = 30;
 
-    pdf.text("Date :", 20, 40);
-    pdf.text(date, 70, 40);
+    // Première section : Deux à gauche, deux à droite
+    pdf.text("Lieu d'intervention :", leftX, y);
+    pdf.text(lieu, leftX + 50, y);
 
-    pdf.text("Date :", 20, 50);
-    pdf.text(date, 70, 50);
+    pdf.text("Date :", rightX, y);
+    pdf.text(date, rightX + 30, y);
 
-    pdf.text("Description des travaux effectués :", 20, 60);
+    y += 10;
+
+    pdf.text("Nom du chantier :", leftX, y);
+    pdf.text(chantier, leftX + 50, y);
+
+    pdf.text("Nom de la centrale :", rightX, y);
+    pdf.text(centrale, rightX + 50, y);
+
+    y += 10;
+
+    pdf.text("Nom de l'entreprise :", leftX, y);
+    pdf.text(entreprise, leftX + 50, y);
+
+    y += 10;
+
+    // Description
+    pdf.text("Description des travaux effectués :", leftX, y);
     const descLines = pdf.splitTextToSize(description, 170);
-    pdf.text(descLines, 20, 70);
+    pdf.text(descLines, leftX, y + 5);
 
-    pdf.text("Noms des techniciens :", 20, 90);
-    pdf.text(techniciens, 70, 90);
+    y += descLines.length * 7 + 10;
 
-    pdf.text("Heure de début :", 20, 100);
-    pdf.text(debut, 70, 100);
+    // Techniciens, heure début, heure fin, durée
+    pdf.text("Noms des techniciens :", leftX, y);
+    pdf.text(techniciens, leftX + 50, y);
 
-    pdf.text("Heure de fin :", 120, 100);
-    pdf.text(fin, 150, 100);
+    pdf.text("Heure de début :", rightX, y);
+    pdf.text(debut, rightX + 40, y);
 
-    pdf.text("Durée :", 20, 110);
-    pdf.text(duree, 70, 110);
+    y += 10;
 
+    pdf.text("Heure de fin :", rightX, y);
+    pdf.text(fin, rightX + 40, y);
+
+    pdf.text("Durée :", leftX, y);
+    pdf.text(duree, leftX + 50, y);
+
+    y += 20;
+
+    // Tableau des pièces fournies
     pdf.autoTable({
-      startY: 120,
+      startY: y,
       head: [["Fabricant", "Désignation", "Quantité"]],
-      body: [
-        ["Exemple Fabricant", "Exemple Désignation 1", "2"],
-        ["Exemple Fabricant", "Exemple Désignation 2", "5"],
-        ["Exemple Fabricant", "Exemple Désignation 3", "1"],
-      ],
+      body: [],
       theme: "grid",
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-        halign: "center",
-      },
-      headStyles: {
-        fillColor: [200, 200, 200],
-        textColor: [0, 0, 0],
-        fontStyle: "bold",
-      },
     });
 
-    pdf.text(
-      "Signature du représentant de l'entreprise :",
-      20,
-      pdf.lastAutoTable.finalY + 20
-    );
-    pdf.line(
-      20,
-      pdf.lastAutoTable.finalY + 25,
-      100,
-      pdf.lastAutoTable.finalY + 25
-    );
+    // Signatures
+    const signatureY = pdf.lastAutoTable.finalY + 20;
+    pdf.text("Signature du représentant de l'entreprise :", leftX, signatureY);
+    pdf.line(leftX, signatureY + 5, leftX + 80, signatureY + 5);
 
-    pdf.text("Signature agent EDF :", 120, pdf.lastAutoTable.finalY + 20);
-    pdf.line(
-      120,
-      pdf.lastAutoTable.finalY + 25,
-      200,
-      pdf.lastAutoTable.finalY + 25
-    );
+    pdf.text("Signature agent EDF :", rightX, signatureY);
+    pdf.line(rightX, signatureY + 5, rightX + 80, signatureY + 5);
 
+    // Sauvegarde
     pdf.save("bon_intervention.pdf");
   }
 });

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Saisie des Comptes Rendus</title>
     <link rel="stylesheet" href="style.css" />
-    <link rel="manifest" href="manifest.json" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   </head>
@@ -16,32 +15,38 @@
 
     <main>
       <form id="form-cr">
-        <label for="lieu">Lieu d’intervention :</label>
-        <input type="text" id="lieu" name="lieu" required />
+        <label for="lieu">Lieu d'intervention :</label>
+        <input type="text" id="lieu" required />
+
+        <label for="date">Date :</label>
+        <input type="date" id="date" required />
+
+        <label for="chantier">Nom du chantier :</label>
+        <input type="text" id="chantier" required />
+
+        <label for="centrale">Nom de la centrale :</label>
+        <input type="text" id="centrale" required />
+
+        <label for="entreprise">Nom de l'entreprise :</label>
+        <input type="text" id="entreprise" required />
 
         <label for="description">Description des travaux :</label>
-        <textarea
-          id="description"
-          name="description"
-          rows="4"
-          required
-        ></textarea>
+        <textarea id="description" rows="4" required></textarea>
 
-        <label for="date">Date d’intervention :</label>
-        <input type="date" id="date" name="date" required />
+        <label for="techniciens">Noms des techniciens :</label>
+        <input type="text" id="techniciens" required />
 
         <label for="horaire-debut">Heure de début :</label>
-        <input type="time" id="horaire-debut" name="horaire-debut" required />
+        <input type="time" id="horaire-debut" required />
 
         <label for="horaire-fin">Heure de fin :</label>
-        <input type="time" id="horaire-fin" name="horaire-fin" required />
+        <input type="time" id="horaire-fin" required />
 
-        <label for="techniciens">Nom des techniciens :</label>
-        <input type="text" id="techniciens" name="techniciens" required />
-
-        <button type="submit">Générer Compte Rendu</button>
+        <button type="submit">Générer le PDF</button>
       </form>
     </main>
+
+    <footer></footer>
 
     <script src="script.js"></script>
   </body>
