@@ -1,5 +1,3 @@
-// script.js
-
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-cr");
 
@@ -15,13 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const duree = calculerDuree(heureDebut, heureFin);
 
-    console.log("Lieu d'intervention :", lieu);
-    console.log("Description des travaux :", description);
-    console.log("Date :", date);
-    console.log("Heure de début :", heureDebut);
-    console.log("Heure de fin :", heureFin);
-    console.log("Durée :", duree);
-    console.log("Nom des techniciens :", techniciens);
+    genererPDF(
+      lieu,
+      description,
+      date,
+      heureDebut,
+      heureFin,
+      duree,
+      techniciens
+    );
   });
 
   function calculerDuree(debut, fin) {
@@ -36,5 +36,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const minutes = dureeMinutes % 60;
 
     return `${heures}h ${minutes}min`;
+  }
+
+  function genererPDF(lieu, description, date, debut, fin, duree, techniciens) {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+
+    pdf.text("Compte Rendu d'Intervention", 20, 20);
+    pdf.text(`Lieu d'intervention : ${lieu}`, 20, 30);
+    pdf.text(`Description des travaux :`, 20, 40);
+    pdf.text(`${description}`, 20, 50);
+    pdf.text(`Date : ${date}`, 20, 70);
+    pdf.text(`Heure de début : ${debut}`, 20, 80);
+    pdf.text(`Heure de fin : ${fin}`, 20, 90);
+    pdf.text(`Durée : ${duree}`, 20, 100);
+    pdf.text(`Techniciens : ${techniciens}`, 20, 110);
+
+    pdf.save("compte_rendu.pdf");
   }
 });
