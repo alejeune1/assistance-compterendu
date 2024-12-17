@@ -4,6 +4,23 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    document.getElementById("photos").addEventListener("change", (event) => {
+      const previewContainer = document.getElementById("photo-preview");
+      previewContainer.innerHTML = ""; // Efface les anciennes prévisualisations
+
+      Array.from(event.target.files).forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            previewContainer.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    });
+
     // Récupération des valeurs des champs
     const date = document.getElementById("date").value;
     const chantier = document.getElementById("chantier").value;
@@ -42,6 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       });
 
+    // Récupération des photos
+    const photos = Array.from(document.querySelectorAll(".photo-upload")).map(
+      (input) => input.files[0]
+    );
+
     // Appel pour générer le PDF
     genererPDF(
       date,
@@ -54,7 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
       interventions,
       representant,
       agent,
-      commentaires
+      commentaires,
+      photos
     );
   });
 
@@ -69,9 +92,10 @@ document.addEventListener("DOMContentLoaded", () => {
     interventions,
     representant,
     agent,
-    commentaires
+    commentaires,
+    photos
   ) {
-    const { jsPDF } = window.jspdf; // Correct import de jsPDF
+    const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
     pdf.setFontSize(16);
@@ -155,7 +179,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const commentLines = pdf.splitTextToSize(commentaires, 170);
     pdf.text(commentLines, leftX, y + 5);
 
-    // Sauvegarde
-    pdf.save("bon_intervention.pdf");
+    y += commentLines.length * 7 + 10;
+
+    // Ajout des photos
+    photos.forEach((photo, index) => {
+      if (photo) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const imgData = e.target.result;
+          pdf.addImage(imgData, "JPEG", leftX, y, 60, 40);
+          y += 50;
+          if (index < photos.length - 1) {
+            pdf.addPage();
+            y = 20;
+          }
+          if (index === photos.length - 1) {
+            pdf.save("bon_intervention.pdf");
+          }
+        };
+        reader.readAsDataURL(photo);
+      }
+    });
   }
 });
