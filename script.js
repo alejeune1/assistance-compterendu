@@ -53,9 +53,12 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.text("Date :", 20, 40);
     pdf.text(date, 70, 40);
 
-    pdf.text("Description des travaux :", 20, 50);
+    pdf.text("Date :", 20, 50);
+    pdf.text(date, 70, 50);
+
+    pdf.text("Description des travaux effectués :", 20, 60);
     const descLines = pdf.splitTextToSize(description, 170);
-    pdf.text(descLines, 20, 60);
+    pdf.text(descLines, 20, 70);
 
     pdf.text("Noms des techniciens :", 20, 90);
     pdf.text(techniciens, 70, 90);
