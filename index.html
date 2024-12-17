@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saisie des Comptes Rendus</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json" />
+  </head>
+  <body>
+    <header>
+      <h1>Saisie des Comptes Rendus</h1>
+    </header>
+
+    <main>
+      <!-- Formulaire principal -->
+      <form id="form-cr">
+        <label for="lieu">Lieu d’intervention :</label>
+        <input type="text" id="lieu" name="lieu" required />
+
+        <label for="description">Description des travaux :</label>
+        <textarea
+          id="description"
+          name="description"
+          rows="4"
+          required
+        ></textarea>
+
+        <label for="date">Date d’intervention :</label>
+        <input type="date" id="date" name="date" required />
+
+        <label for="horaire-debut">Heure de début :</label>
+        <input type="time" id="horaire-debut" name="horaire-debut" required />
+
+        <label for="horaire-fin">Heure de fin :</label>
+        <input type="time" id="horaire-fin" name="horaire-fin" required />
+
+        <label for="techniciens">Nom des techniciens :</label>
+        <input type="text" id="techniciens" name="techniciens" required />
+
+        <!-- Bouton pour soumettre -->
+        <button type="submit">Générer Compte Rendu</button>
+      </form>
+    </main>
+
+    <footer>
+      <p>© 2024 Saisie Comptes Rendus</p>
+    </footer>
+
+    <!-- Lien vers le fichier JavaScript -->
+    <script src="script.js"></script>
+  </body>
+</html>
