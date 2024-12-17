@@ -1,9 +1,11 @@
+// Attendre que le DOM soit chargé
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-cr");
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    // Récupérer les valeurs des champs
     const lieu = document.getElementById("lieu").value;
     const description = document.getElementById("description").value;
     const date = document.getElementById("date").value;
@@ -13,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const duree = calculerDuree(heureDebut, heureFin);
 
+    // Générer le PDF avec la mise en page
     genererPDF(
       lieu,
       description,
@@ -24,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
+  // Fonction pour calculer la durée
   function calculerDuree(debut, fin) {
     const [hDebut, mDebut] = debut.split(":").map(Number);
     const [hFin, mFin] = fin.split(":").map(Number);
@@ -38,20 +42,55 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${heures}h ${minutes}min`;
   }
 
+  // Fonction pour générer le PDF avec la mise en page
   function genererPDF(lieu, description, date, debut, fin, duree, techniciens) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
-    pdf.text("Compte Rendu d'Intervention", 20, 20);
-    pdf.text(`Lieu d'intervention : ${lieu}`, 20, 30);
-    pdf.text(`Description des travaux :`, 20, 40);
-    pdf.text(`${description}`, 20, 50);
-    pdf.text(`Date : ${date}`, 20, 70);
-    pdf.text(`Heure de début : ${debut}`, 20, 80);
-    pdf.text(`Heure de fin : ${fin}`, 20, 90);
-    pdf.text(`Durée : ${duree}`, 20, 100);
-    pdf.text(`Techniciens : ${techniciens}`, 20, 110);
+    // Définir les marges et l'espacement
+    const startX = 20;
+    let startY = 20;
 
-    pdf.save("compte_rendu.pdf");
+    // En-tête
+    pdf.setFontSize(16);
+    pdf.text("BON D'INTERVENTION", startX, startY);
+
+    startY += 10;
+
+    pdf.setFontSize(12);
+    pdf.text(`Lieu d'intervention : ${lieu}`, startX, startY);
+    startY += 10;
+
+    pdf.text("Description des travaux effectués :", startX, startY);
+    startY += 5;
+
+    // Ajouter des blocs de texte pour la description (multiligne)
+    const descriptionLines = pdf.splitTextToSize(description, 170);
+    pdf.text(descriptionLines, startX, startY);
+    startY += descriptionLines.length * 7;
+
+    pdf.text(`Date d'intervention : ${date}`, startX, startY);
+    startY += 10;
+
+    pdf.text(
+      `Heure de début : ${debut}   Heure de fin : ${fin}   Durée : ${duree}`,
+      startX,
+      startY
+    );
+    startY += 10;
+
+    pdf.text(`Noms des techniciens : ${techniciens}`, startX, startY);
+    startY += 20;
+
+    // Ligne pour signatures
+    pdf.text("Signature du représentant de l'entreprise :", startX, startY);
+    pdf.text("Signature agent EDF :", startX + 120, startY);
+    startY += 20;
+
+    pdf.line(startX, startY, startX + 80, startY); // Ligne de gauche
+    pdf.line(startX + 120, startY, startX + 200, startY); // Ligne de droite
+
+    // Sauvegarder le PDF
+    pdf.save("bon_intervention.pdf");
   }
 });
