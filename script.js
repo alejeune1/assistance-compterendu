@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    // Récupérer les valeurs du formulaire
     const lieu = document.getElementById("lieu").value;
     const description = document.getElementById("description").value;
     const date = document.getElementById("date").value;
@@ -14,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const duree = calculerDuree(heureDebut, heureFin);
 
-    // Générer le PDF avec tableau et colonnes
     genererPDF(
       lieu,
       description,
@@ -44,13 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
-    // Titre
     pdf.setFontSize(16);
     pdf.text("BON D'INTERVENTION", 105, 20, { align: "center" });
 
     pdf.setFontSize(12);
 
-    // Informations principales
     pdf.text("Lieu d'intervention :", 20, 30);
     pdf.text(lieu, 70, 30);
 
@@ -73,7 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.text("Durée :", 20, 110);
     pdf.text(duree, 70, 110);
 
-    // Tableau des pièces fournies
     pdf.autoTable({
       startY: 120,
       head: [["Fabricant", "Désignation", "Quantité"]],
@@ -95,7 +90,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     });
 
-    // Espace pour les signatures
     pdf.text(
       "Signature du représentant de l'entreprise :",
       20,
@@ -116,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
       pdf.lastAutoTable.finalY + 25
     );
 
-    // Sauvegarder le PDF
     pdf.save("bon_intervention.pdf");
   }
 });
