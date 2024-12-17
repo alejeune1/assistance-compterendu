@@ -5,132 +5,155 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
 
     // Récupération des valeurs des champs
-    const lieu = document.getElementById("lieu").value;
     const date = document.getElementById("date").value;
     const chantier = document.getElementById("chantier").value;
     const centrale = document.getElementById("centrale").value;
     const entreprise = document.getElementById("entreprise").value;
+    const lieu = document.getElementById("lieu").value;
     const description = document.getElementById("description").value;
-    const techniciens = document.getElementById("techniciens").value;
-    const heureDebut = document.getElementById("horaire-debut").value;
-    const heureFin = document.getElementById("horaire-fin").value;
+    const representant = document.getElementById("representant").value;
+    const agent = document.getElementById("agent").value;
+    const commentaires = document.getElementById("commentaires").value;
 
-    const duree = calculerDuree(heureDebut, heureFin);
+    // Récupération des lignes de pièces
+    const pieces = Array.from(document.querySelectorAll("#pieces-table tr"))
+      .slice(1)
+      .map((row) => {
+        const cells = row.querySelectorAll("input");
+        return {
+          fabricant: cells[0].value,
+          designation: cells[1].value,
+          quantite: cells[2].value,
+        };
+      });
+
+    // Récupération des lignes d'intervention
+    const interventions = Array.from(
+      document.querySelectorAll("#intervention-table tr")
+    )
+      .slice(1)
+      .map((row) => {
+        const cells = row.querySelectorAll("input");
+        return {
+          technicien: cells[0].value,
+          date: cells[1].value,
+          horaires: cells[2].value,
+          heures: cells[3].value,
+        };
+      });
 
     // Appel pour générer le PDF
     genererPDF(
-      lieu,
       date,
       chantier,
       centrale,
       entreprise,
+      lieu,
       description,
-      techniciens,
-      heureDebut,
-      heureFin,
-      duree
+      pieces,
+      interventions,
+      representant,
+      agent,
+      commentaires
     );
   });
 
-  function calculerDuree(debut, fin) {
-    const [hDebut, mDebut] = debut.split(":").map(Number);
-    const [hFin, mFin] = fin.split(":").map(Number);
-
-    const debutMinutes = hDebut * 60 + mDebut;
-    const finMinutes = hFin * 60 + mFin;
-
-    const dureeMinutes = finMinutes - debutMinutes;
-    const heures = Math.floor(dureeMinutes / 60);
-    const minutes = dureeMinutes % 60;
-
-    return `${heures}h ${minutes}min`;
-  }
-
   function genererPDF(
-    lieu,
     date,
     chantier,
     centrale,
     entreprise,
+    lieu,
     description,
-    techniciens,
-    debut,
-    fin,
-    duree
+    pieces,
+    interventions,
+    representant,
+    agent,
+    commentaires
   ) {
-    const { jsPDF } = window.jspdf;
+    const { jsPDF } = window.jspdf; // Correct import de jsPDF
     const pdf = new jsPDF();
 
     pdf.setFontSize(16);
     pdf.text("BON D'INTERVENTION", 105, 20, { align: "center" });
 
     pdf.setFontSize(12);
-
+    let y = 30;
     const leftX = 20;
     const rightX = 120;
-    let y = 30;
 
-    // Première section : Deux à gauche, deux à droite
-    pdf.text("Lieu d'intervention :", leftX, y);
+    // Informations principales
+    pdf.text("Date :", leftX, y);
+    pdf.text(date, leftX + 50, y);
+
+    pdf.text("Nom du Chantier :", rightX, y);
+    pdf.text(chantier, rightX + 50, y);
+
+    y += 10;
+    pdf.text("Nom de la Centrale :", leftX, y);
+    pdf.text(centrale, leftX + 50, y);
+
+    pdf.text("Nom de l'Entreprise :", rightX, y);
+    pdf.text(entreprise, rightX + 50, y);
+
+    y += 10;
+    pdf.text("Lieu d'Intervention :", leftX, y);
     pdf.text(lieu, leftX + 50, y);
 
-    pdf.text("Date :", rightX, y);
-    pdf.text(date, rightX + 30, y);
-
     y += 10;
-
-    pdf.text("Nom du chantier :", leftX, y);
-    pdf.text(chantier, leftX + 50, y);
-
-    pdf.text("Nom de la centrale :", rightX, y);
-    pdf.text(centrale, rightX + 50, y);
-
-    y += 10;
-
-    pdf.text("Nom de l'entreprise :", leftX, y);
-    pdf.text(entreprise, leftX + 50, y);
-
-    y += 10;
-
-    // Description
-    pdf.text("Description des travaux effectués :", leftX, y);
+    pdf.text("Description des Travaux Effectués :", leftX, y);
     const descLines = pdf.splitTextToSize(description, 170);
     pdf.text(descLines, leftX, y + 5);
 
     y += descLines.length * 7 + 10;
 
-    // Techniciens, heure début, heure fin, durée
-    pdf.text("Noms des techniciens :", leftX, y);
-    pdf.text(techniciens, leftX + 50, y);
-
-    pdf.text("Heure de début :", rightX, y);
-    pdf.text(debut, rightX + 40, y);
-
-    y += 10;
-
-    pdf.text("Heure de fin :", rightX, y);
-    pdf.text(fin, rightX + 40, y);
-
-    pdf.text("Durée :", leftX, y);
-    pdf.text(duree, leftX + 50, y);
-
-    y += 20;
-
-    // Tableau des pièces fournies
+    // Désignations des pièces fournies
+    pdf.text("Désignations des Pièces Fournies", leftX, y);
+    y += 5;
     pdf.autoTable({
       startY: y,
       head: [["Fabricant", "Désignation", "Quantité"]],
-      body: [],
+      body: pieces.map((p) => [p.fabricant, p.designation, p.quantite]),
       theme: "grid",
     });
 
-    // Signatures
-    const signatureY = pdf.lastAutoTable.finalY + 20;
-    pdf.text("Signature du représentant de l'entreprise :", leftX, signatureY);
-    pdf.line(leftX, signatureY + 5, leftX + 80, signatureY + 5);
+    y = pdf.lastAutoTable.finalY + 10;
 
-    pdf.text("Signature agent EDF :", rightX, signatureY);
-    pdf.line(rightX, signatureY + 5, rightX + 80, signatureY + 5);
+    // Temps d'intervention
+    pdf.text("Temps d'Intervention", leftX, y);
+    y += 5;
+    pdf.autoTable({
+      startY: y,
+      head: [["Technicien", "Date", "Horaires", "Nombre d'Heures"]],
+      body: interventions.map((i) => [
+        i.technicien,
+        i.date,
+        i.horaires,
+        i.heures,
+      ]),
+      theme: "grid",
+    });
+
+    y = pdf.lastAutoTable.finalY + 10;
+
+    // Signatures
+    pdf.text("Signature du Représentant de l'Entreprise :", leftX, y);
+    pdf.line(leftX, y + 5, leftX + 80, y + 5);
+
+    pdf.text("Signature Agent EDF :", rightX, y);
+    pdf.line(rightX, y + 5, rightX + 80, y + 5);
+
+    y += 15;
+    pdf.text("Nom / Prénom :", leftX, y);
+    pdf.text(representant, leftX + 50, y);
+
+    pdf.text("Nom / Prénom :", rightX, y);
+    pdf.text(agent, rightX + 50, y);
+
+    y += 15;
+    pdf.text("Commentaires :", leftX, y);
+    const commentLines = pdf.splitTextToSize(commentaires, 170);
+    pdf.text(commentLines, leftX, y + 5);
 
     // Sauvegarde
     pdf.save("bon_intervention.pdf");
