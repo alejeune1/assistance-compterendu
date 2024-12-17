@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const duree = calculerDuree(heureDebut, heureFin);
 
-    // Générer le PDF
+    // Générer le PDF avec tableau et colonnes
     genererPDF(
       lieu,
       description,
@@ -44,46 +44,79 @@ document.addEventListener("DOMContentLoaded", () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
-    // TITRE
+    // Titre
     pdf.setFontSize(16);
     pdf.text("BON D'INTERVENTION", 105, 20, { align: "center" });
 
     pdf.setFontSize(12);
 
-    // LIEU D'INTERVENTION
+    // Informations principales
     pdf.text("Lieu d'intervention :", 20, 30);
-    pdf.text(lieu, 80, 30);
+    pdf.text(lieu, 70, 30);
 
-    // DESCRIPTION DES TRAVAUX
-    pdf.text("Description des travaux effectués :", 20, 40);
-    const descLines = pdf.splitTextToSize(description, 160);
-    pdf.text(descLines, 20, 50);
+    pdf.text("Date :", 20, 40);
+    pdf.text(date, 70, 40);
 
-    // DATE ET HORAIRES
-    pdf.text("Date :", 20, 80);
-    pdf.text(date, 40, 80);
+    pdf.text("Description des travaux :", 20, 50);
+    const descLines = pdf.splitTextToSize(description, 170);
+    pdf.text(descLines, 20, 60);
 
-    pdf.text("Heure de début :", 20, 90);
-    pdf.text(debut, 60, 90);
+    pdf.text("Noms des techniciens :", 20, 90);
+    pdf.text(techniciens, 70, 90);
 
-    pdf.text("Heure de fin :", 100, 90);
-    pdf.text(fin, 130, 90);
+    pdf.text("Heure de début :", 20, 100);
+    pdf.text(debut, 70, 100);
 
-    pdf.text("Durée :", 150, 90);
-    pdf.text(duree, 170, 90);
+    pdf.text("Heure de fin :", 120, 100);
+    pdf.text(fin, 150, 100);
 
-    // NOMS TECHNICIENS
-    pdf.text("Noms des techniciens :", 20, 100);
-    pdf.text(techniciens, 80, 100);
+    pdf.text("Durée :", 20, 110);
+    pdf.text(duree, 70, 110);
 
-    // SIGNATURES
-    pdf.text("Signature du représentant de l'entreprise :", 20, 140);
-    pdf.line(20, 145, 100, 145);
+    // Tableau des pièces fournies
+    pdf.autoTable({
+      startY: 120,
+      head: [["Fabricant", "Désignation", "Quantité"]],
+      body: [
+        ["Exemple Fabricant", "Exemple Désignation 1", "2"],
+        ["Exemple Fabricant", "Exemple Désignation 2", "5"],
+        ["Exemple Fabricant", "Exemple Désignation 3", "1"],
+      ],
+      theme: "grid",
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        halign: "center",
+      },
+      headStyles: {
+        fillColor: [200, 200, 200],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+      },
+    });
 
-    pdf.text("Signature agent EDF :", 120, 140);
-    pdf.line(120, 145, 200, 145);
+    // Espace pour les signatures
+    pdf.text(
+      "Signature du représentant de l'entreprise :",
+      20,
+      pdf.lastAutoTable.finalY + 20
+    );
+    pdf.line(
+      20,
+      pdf.lastAutoTable.finalY + 25,
+      100,
+      pdf.lastAutoTable.finalY + 25
+    );
 
-    // SAUVEGARDE DU PDF
+    pdf.text("Signature agent EDF :", 120, pdf.lastAutoTable.finalY + 20);
+    pdf.line(
+      120,
+      pdf.lastAutoTable.finalY + 25,
+      200,
+      pdf.lastAutoTable.finalY + 25
+    );
+
+    // Sauvegarder le PDF
     pdf.save("bon_intervention.pdf");
   }
 });
