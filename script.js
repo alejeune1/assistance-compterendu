@@ -61,9 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
     // Récupération des photos
-    const photos = Array.from(document.querySelectorAll(".photo-upload")).map(
-      (input) => input.files[0]
-    );
+    const photoInput = document.getElementById("photos");
+    const photos = Array.from(photoInput.files);
 
     // Appel pour générer le PDF
     genererPDF(
@@ -190,7 +189,6 @@ document.addEventListener("DOMContentLoaded", () => {
       pdf.save("bon_intervention.pdf");
     }
 
-    // Fonction pour lire les images en base64
     function lireImage(photo) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -199,7 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Appel pour ajouter les photos et sauvegarder le PDF
     if (photos.length > 0) {
       ajouterPhotos();
     } else {
