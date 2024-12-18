@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
     "clear-agent"
   );
 
-  // Modification : Passage de la fonction de soumission en mode asynchrone
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -90,7 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  // Modification : Passage de la fonction en mode asynchrone
   async function genererPDF(
     date,
     chantier,
@@ -115,7 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = 30;
     const leftX = 20;
 
-    // Fonction pour dessiner des lignes horizontales
     const drawSectionLine = () => {
       pdf.setDrawColor(0); // Couleur noire
       pdf.setLineWidth(0.5);
@@ -186,58 +183,71 @@ document.addEventListener("DOMContentLoaded", () => {
     // Signatures électroniques
     pdf.text("Signatures :", leftX, y);
     y += 10;
+    pdf.setFontSize(10); // Réduction de la taille de police pour les noms
     const signatureRepresentant = canvasRepresentant.toDataURL("image/png");
     const signatureAgent = canvasAgent.toDataURL("image/png");
 
     // Affichage de la signature du représentant
     pdf.text("Représentant :", leftX, y);
     pdf.text(document.getElementById("representant").value, leftX + 100, y);
-    pdf.addImage(signatureRepresentant, "PNG", leftX, y + 5, 80, 50);
-
-    y += 60; // Ajout d'espace après la signature
+    pdf.addImage(signatureRepresentant, "PNG", leftX, y + 10, 80, 50);
+    y += 80; // Espace vertical augmenté
 
     // Affichage de la signature de l'agent EDF
     pdf.text("Agent EDF :", leftX, y);
     pdf.text(document.getElementById("agent").value, leftX + 100, y);
-    pdf.addImage(signatureAgent, "PNG", leftX, y + 5, 80, 50);
-
-    y += 60;
+    pdf.addImage(signatureAgent, "PNG", leftX, y + 10, 80, 50);
+    y += 80; // Espace vertical augmenté
     drawSectionLine();
 
     // Ajout des photos de manière asynchrone
     await ajouterPhotos(pdf, photos, leftX, y);
 
-    // Sauvegarde du PDF
     pdf.save("bon_intervention.pdf");
   }
 
-  // Fonction asynchrone pour ajouter les photos
   async function ajouterPhotos(pdf, photos, leftX, startY) {
     let y = startY;
 
     for (const photo of photos) {
       if (photo) {
         const imgData = await lireImage(photo);
+        const imgDimensions = await getImageDimensions(imgData);
 
-        // Ajuster la taille de l'image si nécessaire
-        pdf.addImage(imgData, "JPEG", leftX, y, 100, 100);
-        y += 110;
-
-        // Ajouter une nouvelle page si nécessaire
-        if (y > 280) {
+        // Ajuster la position verticale si nécessaire pour éviter le débordement
+        if (y + imgDimensions.height > 280) {
           pdf.addPage();
           y = 20;
         }
+
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          leftX,
+          y,
+          imgDimensions.width,
+          imgDimensions.height
+        );
+        y += imgDimensions.height + 10; // Espace vertical entre les photos
       }
     }
   }
 
-  // Fonction utilitaire pour lire une image
   function lireImage(photo) {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
       reader.readAsDataURL(photo);
+    });
+  }
+
+  async function getImageDimensions(imgData) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({ width: img.width, height: img.height });
+      };
+      img.src = imgData;
     });
   }
 
