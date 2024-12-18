@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-cr");
 
-  // Ajout de l'événement pour la prévisualisation des images
+  // Prévisualisation des images
   document.getElementById("photos").addEventListener("change", (event) => {
     const previewContainer = document.getElementById("photo-preview");
     previewContainer.innerHTML = ""; // Efface les anciennes prévisualisations
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Initialisation des canvases pour les signatures (fonctionnalité PC et mobile)
+  // Initialisation des canvases pour les signatures (PC et Mobile)
   const canvasRepresentant = setupSignatureCanvas(
     "signature-representant-canvas",
     "clear-representant"
@@ -39,8 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const entreprise = document.getElementById("entreprise").value;
     const lieu = document.getElementById("lieu").value;
     const description = document.getElementById("description").value;
-    const representant = document.getElementById("representant").value;
-    const agent = document.getElementById("agent").value;
     const commentaires = document.getElementById("commentaires").value;
 
     // Récupération des lignes de pièces
@@ -74,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const photoInput = document.getElementById("photos");
     const photos = Array.from(photoInput.files);
 
-    // Appel pour générer le PDF
+    // Générer le PDF
     genererPDF(
       date,
       chantier,
@@ -84,10 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
       description,
       pieces,
       interventions,
-      representant,
-      agent,
       commentaires,
-      photos
+      photos,
+      canvasRepresentant,
+      canvasAgent
     );
   });
 
@@ -100,10 +98,10 @@ document.addEventListener("DOMContentLoaded", () => {
     description,
     pieces,
     interventions,
-    representant,
-    agent,
     commentaires,
-    photos
+    photos,
+    canvasRepresentant,
+    canvasAgent
   ) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
@@ -115,24 +113,26 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = 30;
     const leftX = 20;
 
-    // Délimitation - Ligne horizontale
+    // Fonction pour dessiner des lignes horizontales
     const drawSectionLine = () => {
-      pdf.setDrawColor(0);
+      pdf.setDrawColor(0); // Couleur noire
       pdf.setLineWidth(0.5);
-      pdf.line(10, y, 200, y); // Ligne horizontale sur toute la largeur
+      pdf.line(10, y, 200, y); // Ligne horizontale
       y += 5;
     };
 
-    // Informations principales
+    // Informations générales
     pdf.text("Informations Générales :", leftX, y);
     y += 10;
-    pdf.text("Date :", leftX, y);
-    pdf.text(date, leftX + 50, y);
-
+    pdf.text(`Date : ${date}`, leftX, y);
     y += 10;
-    pdf.text("Nom du Chantier :", leftX, y);
-    pdf.text(chantier, leftX + 50, y);
-
+    pdf.text(`Nom du Chantier : ${chantier}`, leftX, y);
+    y += 10;
+    pdf.text(`Nom de la Centrale : ${centrale}`, leftX, y);
+    y += 10;
+    pdf.text(`Nom de l'Entreprise : ${entreprise}`, leftX, y);
+    y += 10;
+    pdf.text(`Lieu d'Intervention : ${lieu}`, leftX, y);
     y += 10;
     drawSectionLine();
 
@@ -153,7 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
       body: pieces.map((p) => [p.fabricant, p.designation, p.quantite]),
       theme: "grid",
     });
-
     y = pdf.lastAutoTable.finalY + 10;
     drawSectionLine();
 
@@ -171,7 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ]),
       theme: "grid",
     });
-
     y = pdf.lastAutoTable.finalY + 10;
     drawSectionLine();
 
@@ -196,6 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.addImage(signatureAgent, "PNG", leftX + 100, y + 5, 80, 50);
 
     y += 60;
+    drawSectionLine();
 
     // Ajout des photos
     async function ajouterPhotos() {
