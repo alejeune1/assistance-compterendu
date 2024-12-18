@@ -189,14 +189,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Affichage de la signature du représentant
     pdf.text("Représentant :", leftX, y);
-    pdf.text(representant, leftX + 100, y); // Affichage du nom à côté
+    pdf.text(document.getElementById("representant").value, leftX + 100, y);
     pdf.addImage(signatureRepresentant, "PNG", leftX, y + 5, 80, 50);
 
     y += 60; // Ajout d'espace après la signature
 
     // Affichage de la signature de l'agent EDF
     pdf.text("Agent EDF :", leftX, y);
-    pdf.text(agent, leftX + 100, y); // Affichage du nom à côté
+    pdf.text(document.getElementById("agent").value, leftX + 100, y);
     pdf.addImage(signatureAgent, "PNG", leftX, y + 5, 80, 50);
 
     y += 60;
