@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "clear-agent"
   );
 
-  form.addEventListener("submit", async (event) => {
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
 
     // Récupération des valeurs des champs
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const photos = Array.from(photoInput.files);
 
     // Générer le PDF
-    await genererPDF(
+    genererPDF(
       date,
       chantier,
       centrale,
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  async function genererPDF(
+  function genererPDF(
     date,
     chantier,
     centrale,
@@ -113,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = 30;
     const leftX = 20;
 
+    // Fonction pour dessiner des lignes horizontales
     const drawSectionLine = () => {
       pdf.setDrawColor(0); // Couleur noire
       pdf.setLineWidth(0.5);
@@ -183,72 +184,54 @@ document.addEventListener("DOMContentLoaded", () => {
     // Signatures électroniques
     pdf.text("Signatures :", leftX, y);
     y += 10;
-    pdf.setFontSize(10); // Réduction de la taille de police pour les noms
+
     const signatureRepresentant = canvasRepresentant.toDataURL("image/png");
     const signatureAgent = canvasAgent.toDataURL("image/png");
 
     // Affichage de la signature du représentant
     pdf.text("Représentant :", leftX, y);
-    pdf.text(document.getElementById("representant").value, leftX + 100, y);
+    pdf.text(document.getElementById("representant").value, leftX + 50, y); // Nom du représentant
     pdf.addImage(signatureRepresentant, "PNG", leftX, y + 10, 80, 50);
-    y += 80; // Espace vertical augmenté
+
+    y += 70; // Ajout d'espace après la signature
 
     // Affichage de la signature de l'agent EDF
     pdf.text("Agent EDF :", leftX, y);
-    pdf.text(document.getElementById("agent").value, leftX + 100, y);
+    pdf.text(document.getElementById("agent").value, leftX + 50, y); // Nom de l'agent EDF
     pdf.addImage(signatureAgent, "PNG", leftX, y + 10, 80, 50);
-    y += 80; // Espace vertical augmenté
+
+    y += 70;
     drawSectionLine();
 
-    // Ajout des photos de manière asynchrone
-    await ajouterPhotos(pdf, photos, leftX, y);
-
-    pdf.save("bon_intervention.pdf");
-  }
-
-  async function ajouterPhotos(pdf, photos, leftX, startY) {
-    let y = startY;
-
-    for (const photo of photos) {
-      if (photo) {
-        const imgData = await lireImage(photo);
-        const imgDimensions = await getImageDimensions(imgData);
-
-        // Ajuster la position verticale si nécessaire pour éviter le débordement
-        if (y + imgDimensions.height > 280) {
-          pdf.addPage();
-          y = 20;
+    // Ajout des photos
+    async function ajouterPhotos() {
+      for (const photo of photos) {
+        if (photo) {
+          const imgData = await lireImage(photo);
+          pdf.addImage(imgData, "JPEG", leftX, y, 100, 100);
+          y += 110;
+          if (y > 280) {
+            pdf.addPage();
+            y = 20;
+          }
         }
-
-        pdf.addImage(
-          imgData,
-          "JPEG",
-          leftX,
-          y,
-          imgDimensions.width,
-          imgDimensions.height
-        );
-        y += imgDimensions.height + 10; // Espace vertical entre les photos
       }
+      pdf.save("bon_intervention.pdf");
     }
-  }
 
-  function lireImage(photo) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(photo);
-    });
-  }
+    function lireImage(photo) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(photo);
+      });
+    }
 
-  async function getImageDimensions(imgData) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        resolve({ width: img.width, height: img.height });
-      };
-      img.src = imgData;
-    });
+    if (photos.length > 0) {
+      ajouterPhotos();
+    } else {
+      pdf.save("bon_intervention.pdf");
+    }
   }
 
   function setupSignatureCanvas(canvasId, clearButtonId) {
