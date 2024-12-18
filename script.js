@@ -29,7 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "clear-agent"
   );
 
-  form.addEventListener("submit", (event) => {
+  // Modification : Passage de la fonction de soumission en mode asynchrone
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     // Récupération des valeurs des champs
@@ -73,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const photos = Array.from(photoInput.files);
 
     // Générer le PDF
-    genererPDF(
+    await genererPDF(
       date,
       chantier,
       centrale,
@@ -89,7 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  function genererPDF(
+  // Modification : Passage de la fonction en mode asynchrone
+  async function genererPDF(
     date,
     chantier,
     centrale,
@@ -202,35 +204,41 @@ document.addEventListener("DOMContentLoaded", () => {
     y += 60;
     drawSectionLine();
 
-    // Ajout des photos
-    async function ajouterPhotos() {
-      for (const photo of photos) {
-        if (photo) {
-          const imgData = await lireImage(photo);
-          pdf.addImage(imgData, "JPEG", leftX, y, 100, 100);
-          y += 110;
-          if (y > 280) {
-            pdf.addPage();
-            y = 20;
-          }
+    // Ajout des photos de manière asynchrone
+    await ajouterPhotos(pdf, photos, leftX, y);
+
+    // Sauvegarde du PDF
+    pdf.save("bon_intervention.pdf");
+  }
+
+  // Fonction asynchrone pour ajouter les photos
+  async function ajouterPhotos(pdf, photos, leftX, startY) {
+    let y = startY;
+
+    for (const photo of photos) {
+      if (photo) {
+        const imgData = await lireImage(photo);
+
+        // Ajuster la taille de l'image si nécessaire
+        pdf.addImage(imgData, "JPEG", leftX, y, 100, 100);
+        y += 110;
+
+        // Ajouter une nouvelle page si nécessaire
+        if (y > 280) {
+          pdf.addPage();
+          y = 20;
         }
       }
-      pdf.save("bon_intervention.pdf");
     }
+  }
 
-    function lireImage(photo) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.readAsDataURL(photo);
-      });
-    }
-
-    if (photos.length > 0) {
-      ajouterPhotos();
-    } else {
-      pdf.save("bon_intervention.pdf");
-    }
+  // Fonction utilitaire pour lire une image
+  function lireImage(photo) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(photo);
+    });
   }
 
   function setupSignatureCanvas(canvasId, clearButtonId) {
