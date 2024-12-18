@@ -91,78 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  function setupSignatureCanvas(canvasId, clearButtonId) {
-    const canvas = document.getElementById(canvasId);
-    const context = canvas.getContext("2d");
-    let isDrawing = false;
-
-    // Récupération de la position relative
-    function getPosition(event) {
-      const rect = canvas.getBoundingClientRect();
-      if (event.touches) {
-        // Gestion des touch events
-        return {
-          x: event.touches[0].clientX - rect.left,
-          y: event.touches[0].clientY - rect.top,
-        };
-      } else {
-        // Gestion des mouse events
-        return {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        };
-      }
-    }
-
-    // Début du dessin
-    function startDrawing(event) {
-      isDrawing = true;
-      const pos = getPosition(event);
-      context.beginPath();
-      context.moveTo(pos.x, pos.y);
-    }
-
-    // Dessiner
-    function draw(event) {
-      if (!isDrawing) return;
-      const pos = getPosition(event);
-      context.lineTo(pos.x, pos.y);
-      context.stroke();
-    }
-
-    // Fin du dessin
-    function stopDrawing() {
-      isDrawing = false;
-      context.closePath();
-    }
-
-    // Gestion des événements pour la souris
-    canvas.addEventListener("mousedown", startDrawing);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDrawing);
-
-    // Gestion des événements tactiles
-    canvas.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      startDrawing(e);
-    });
-    canvas.addEventListener("touchmove", (e) => {
-      e.preventDefault();
-      draw(e);
-    });
-    canvas.addEventListener("touchend", (e) => {
-      e.preventDefault();
-      stopDrawing(e);
-    });
-
-    // Bouton pour effacer le canvas
-    document.getElementById(clearButtonId).addEventListener("click", () => {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    });
-
-    return canvas;
-  }
-
   function genererPDF(
     date,
     chantier,
@@ -187,7 +115,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = 30;
     const leftX = 20;
 
+    // Délimitation - Ligne horizontale
+    const drawSectionLine = () => {
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.line(10, y, 200, y); // Ligne horizontale sur toute la largeur
+      y += 5;
+    };
+
     // Informations principales
+    pdf.text("Informations Générales :", leftX, y);
+    y += 10;
     pdf.text("Date :", leftX, y);
     pdf.text(date, leftX + 50, y);
 
@@ -196,13 +134,19 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.text(chantier, leftX + 50, y);
 
     y += 10;
-    pdf.text("Description des Travaux Effectués :", leftX, y);
-    const descLines = pdf.splitTextToSize(description, 170);
-    pdf.text(descLines, leftX, y + 5);
+    drawSectionLine();
 
+    // Description des travaux
+    pdf.text("Description des Travaux :", leftX, y);
+    y += 10;
+    const descLines = pdf.splitTextToSize(description, 170);
+    pdf.text(descLines, leftX, y);
     y += descLines.length * 7 + 10;
+    drawSectionLine();
 
     // Désignations des pièces fournies
+    pdf.text("Désignations des Pièces Fournies :", leftX, y);
+    y += 5;
     pdf.autoTable({
       startY: y,
       head: [["Fabricant", "Désignation", "Quantité"]],
@@ -211,8 +155,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     y = pdf.lastAutoTable.finalY + 10;
+    drawSectionLine();
 
     // Temps d'intervention
+    pdf.text("Temps d'Intervention :", leftX, y);
+    y += 5;
     pdf.autoTable({
       startY: y,
       head: [["Technicien", "Date", "Horaires", "Nombre d'Heures"]],
@@ -226,20 +173,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     y = pdf.lastAutoTable.finalY + 10;
+    drawSectionLine();
 
     // Commentaires
     pdf.text("Commentaires :", leftX, y);
+    y += 10;
     const commentLines = pdf.splitTextToSize(commentaires, 170);
-    pdf.text(commentLines, leftX, y + 5);
-
+    pdf.text(commentLines, leftX, y);
     y += commentLines.length * 7 + 10;
+    drawSectionLine();
 
-    // Ajout des signatures
-    const signatureRepresentant = canvasRepresentant.toDataURL("image/png");
-    const signatureAgent = canvasAgent.toDataURL("image/png");
-
+    // Signatures électroniques
     pdf.text("Signatures :", leftX, y);
     y += 10;
+    const signatureRepresentant = canvasRepresentant.toDataURL("image/png");
+    const signatureAgent = canvasAgent.toDataURL("image/png");
 
     pdf.text("Représentant :", leftX, y);
     pdf.addImage(signatureRepresentant, "PNG", leftX, y + 5, 80, 50);
@@ -249,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     y += 60;
 
-    // Fonction pour ajouter les photos
+    // Ajout des photos
     async function ajouterPhotos() {
       for (const photo of photos) {
         if (photo) {
@@ -278,5 +226,68 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       pdf.save("bon_intervention.pdf");
     }
+  }
+
+  function setupSignatureCanvas(canvasId, clearButtonId) {
+    const canvas = document.getElementById(canvasId);
+    const context = canvas.getContext("2d");
+    let isDrawing = false;
+
+    const getPosition = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      if (event.touches) {
+        return {
+          x: event.touches[0].clientX - rect.left,
+          y: event.touches[0].clientY - rect.top,
+        };
+      } else {
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+      }
+    };
+
+    const startDrawing = (event) => {
+      isDrawing = true;
+      const pos = getPosition(event);
+      context.beginPath();
+      context.moveTo(pos.x, pos.y);
+    };
+
+    const draw = (event) => {
+      if (!isDrawing) return;
+      const pos = getPosition(event);
+      context.lineTo(pos.x, pos.y);
+      context.stroke();
+    };
+
+    const stopDrawing = () => {
+      isDrawing = false;
+      context.closePath();
+    };
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      startDrawing(e);
+    });
+    canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      draw(e);
+    });
+    canvas.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      stopDrawing(e);
+    });
+
+    document.getElementById(clearButtonId).addEventListener("click", () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    return canvas;
   }
 });
