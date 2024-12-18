@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     y += commentLines.length * 7 + 10;
 
-    // Ajout des photos
+    // Ajout des photos avec respect des proportions
     if (photos.length > 0) {
       photos.forEach((photo, index) => {
         if (photo) {
@@ -161,21 +161,37 @@ document.addEventListener("DOMContentLoaded", () => {
           reader.onload = function (e) {
             const imgData = e.target.result;
 
-            // Ajouter l'image avec une taille ajustée
-            pdf.addImage(imgData, "JPEG", leftX, y, 80, 60); // Ajustement des dimensions
+            const img = new Image();
+            img.src = imgData;
 
-            y += 65; // Espacement entre les photos
+            img.onload = () => {
+              const maxWidth = 100; // Largeur maximale
+              const maxHeight = 100; // Hauteur maximale
 
-            // Ajouter une nouvelle page si nécessaire
-            if (y > 260 && index < photos.length - 1) {
-              pdf.addPage();
-              y = 20;
-            }
+              let width = img.width;
+              let height = img.height;
 
-            // Sauvegarde après ajout de la dernière image
-            if (index === photos.length - 1) {
-              pdf.save("bon_intervention.pdf");
-            }
+              // Calcul des proportions pour respecter les dimensions max
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width *= ratio;
+              height *= ratio;
+
+              // Ajout de l'image
+              pdf.addImage(imgData, "JPEG", leftX, y, width, height);
+
+              y += height + 10; // Espace entre les images
+
+              // Ajouter une nouvelle page si l'espace vertical est insuffisant
+              if (y > 260 && index < photos.length - 1) {
+                pdf.addPage();
+                y = 20;
+              }
+
+              // Sauvegarde du PDF à la fin
+              if (index === photos.length - 1) {
+                pdf.save("bon_intervention.pdf");
+              }
+            };
           };
           reader.readAsDataURL(photo);
         }
