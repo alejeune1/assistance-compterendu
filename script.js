@@ -153,56 +153,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
     y += commentLines.length * 7 + 10;
 
-    // Fonction pour charger les images en Promise
-    const chargerImages = (photos) => {
-      return Promise.all(
-        photos.map((photo) => {
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const img = new Image();
-              img.src = e.target.result;
-              img.onload = () => {
-                resolve({
-                  data: e.target.result,
-                  width: img.width,
-                  height: img.height,
-                });
-              };
+    // Fonction pour ajouter les images
+    async function ajouterPhotos() {
+      for (const photo of photos) {
+        if (photo) {
+          const imgData = await lireImage(photo); // Lecture asynchrone de l'image
+
+          const img = new Image();
+          img.src = imgData;
+
+          await new Promise((resolve) => {
+            img.onload = () => {
+              const maxWidth = 100; // Largeur maximale
+              const maxHeight = 100; // Hauteur maximale
+
+              let width = img.width;
+              let height = img.height;
+
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width *= ratio;
+              height *= ratio;
+
+              if (y + height > 280) {
+                pdf.addPage();
+                y = 20;
+              }
+
+              pdf.addImage(imgData, "JPEG", leftX, y, width, height);
+              y += height + 10;
+              resolve();
             };
-            reader.readAsDataURL(photo);
           });
-        })
-      );
-    };
+        }
+      }
 
-    // Ajout des images dans le PDF
-    if (photos.length > 0) {
-      chargerImages(photos).then((images) => {
-        images.forEach((image) => {
-          const maxWidth = 100;
-          const maxHeight = 100;
+      pdf.save("bon_intervention.pdf");
+    }
 
-          let width = image.width;
-          let height = image.height;
-
-          // Redimensionner les proportions
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width *= ratio;
-          height *= ratio;
-
-          if (y + height > 280) {
-            pdf.addPage();
-            y = 20;
-          }
-
-          pdf.addImage(image.data, "JPEG", leftX, y, width, height);
-          y += height + 10;
-        });
-
-        // Sauvegarder le PDF après ajout des images
-        pdf.save("bon_intervention.pdf");
+    // Fonction pour lire les images en base64
+    function lireImage(photo) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(photo);
       });
+    }
+
+    // Appel pour ajouter les photos et sauvegarder le PDF
+    if (photos.length > 0) {
+      ajouterPhotos();
     } else {
       pdf.save("bon_intervention.pdf");
     }
