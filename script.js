@@ -153,8 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     y += commentLines.length * 7 + 10;
 
-    // Ajout des photos avec respect des proportions
+    // Ajout des photos avec gestion asynchrone
     if (photos.length > 0) {
+      let imagesProcessed = 0; // Compteur d'images traitées
+
       photos.forEach((photo, index) => {
         if (photo) {
           const reader = new FileReader();
@@ -179,16 +181,17 @@ document.addEventListener("DOMContentLoaded", () => {
               // Ajout de l'image
               pdf.addImage(imgData, "JPEG", leftX, y, width, height);
 
-              y += height + 10; // Espace entre les images
+              y += height + 10; // Espacement entre les images
 
-              // Ajouter une nouvelle page si l'espace vertical est insuffisant
-              if (y > 260 && index < photos.length - 1) {
+              // Nouvelle page si nécessaire
+              if (y > 260) {
                 pdf.addPage();
                 y = 20;
               }
 
-              // Sauvegarde du PDF à la fin
-              if (index === photos.length - 1) {
+              // Mise à jour du compteur
+              imagesProcessed++;
+              if (imagesProcessed === photos.length) {
                 pdf.save("bon_intervention.pdf");
               }
             };
