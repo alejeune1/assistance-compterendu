@@ -180,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
     y += commentLines.length * 7 + 10;
     drawSectionLine();
 
+    // Modification de la section Signatures
     // Signatures
     pdf.text("Signatures :", leftX, y);
     y += 10;
@@ -187,16 +188,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const signatureRepresentant = canvasRepresentant.toDataURL("image/png");
     const signatureAgent = canvasAgent.toDataURL("image/png");
 
-    // Signature du représentant
-    pdf.text("Représentant :", leftX, y);
-    pdf.text(document.getElementById("representant").value, leftX + 50, y);
-    pdf.addImage(signatureRepresentant, "PNG", leftX, y + 10, 80, 50);
-    y += 70;
+    // Largeur totale disponible et espacement
+    const totalWidth = 170; // Largeur totale disponible
+    const signatureWidth = 80; // Largeur de chaque signature
+    const spacing = 10; // Espacement entre les signatures
 
-    // Signature de l'agent EDF
-    pdf.text("Agent EDF :", leftX, y);
-    pdf.text(document.getElementById("agent").value, leftX + 50, y);
-    pdf.addImage(signatureAgent, "PNG", leftX, y + 10, 80, 50);
+    // Calcul des positions X
+    const xRepresentant = leftX;
+    const xAgent = leftX + signatureWidth + spacing;
+
+    // Signature du représentant (à gauche)
+    pdf.text("Représentant :", xRepresentant, y);
+    pdf.text(
+      document.getElementById("representant").value,
+      xRepresentant + 50,
+      y
+    );
+    pdf.rect(xRepresentant, y + 10, signatureWidth, 50, "S"); // Cadre pour la signature
+    pdf.addImage(
+      signatureRepresentant,
+      "PNG",
+      xRepresentant,
+      y + 10,
+      signatureWidth,
+      50
+    );
+
+    // Signature de l'agent EDF (à droite)
+    pdf.text("Agent EDF :", xAgent, y);
+    pdf.text(document.getElementById("agent").value, xAgent + 50, y);
+    pdf.rect(xAgent, y + 10, signatureWidth, 50, "S"); // Cadre pour la signature
+    pdf.addImage(signatureAgent, "PNG", xAgent, y + 10, signatureWidth, 50);
+
     y += 70;
     drawSectionLine();
 
