@@ -153,9 +153,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     y += commentLines.length * 7 + 10;
 
-    // Ajout des photos avec gestion asynchrone
-    if (photos.length > 0) {
-      let imagesProcessed = 0; // Compteur d'images traitées
+    // Fonction pour charger et ajouter les images
+    function ajouterImagesEtSauvegarder() {
+      let imagesChargées = 0;
 
       photos.forEach((photo, index) => {
         if (photo) {
@@ -167,31 +167,26 @@ document.addEventListener("DOMContentLoaded", () => {
             img.src = imgData;
 
             img.onload = () => {
-              const maxWidth = 100; // Largeur maximale
-              const maxHeight = 100; // Hauteur maximale
+              const maxWidth = 100;
+              const maxHeight = 100;
 
               let width = img.width;
               let height = img.height;
 
-              // Calcul des proportions pour respecter les dimensions max
               const ratio = Math.min(maxWidth / width, maxHeight / height);
               width *= ratio;
               height *= ratio;
 
-              // Ajout de l'image
-              pdf.addImage(imgData, "JPEG", leftX, y, width, height);
-
-              y += height + 10; // Espacement entre les images
-
-              // Nouvelle page si nécessaire
-              if (y > 260) {
+              if (y + height > 280) {
                 pdf.addPage();
                 y = 20;
               }
 
-              // Mise à jour du compteur
-              imagesProcessed++;
-              if (imagesProcessed === photos.length) {
+              pdf.addImage(imgData, "JPEG", leftX, y, width, height);
+              y += height + 10;
+
+              imagesChargées++;
+              if (imagesChargées === photos.length) {
                 pdf.save("bon_intervention.pdf");
               }
             };
@@ -199,6 +194,10 @@ document.addEventListener("DOMContentLoaded", () => {
           reader.readAsDataURL(photo);
         }
       });
+    }
+
+    if (photos.length > 0) {
+      ajouterImagesEtSauvegarder();
     } else {
       pdf.save("bon_intervention.pdf");
     }
