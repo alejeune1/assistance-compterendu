@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Initialisation des canvases pour les signatures
+  // Initialisation des canvases pour les signatures (fonctionnalité PC et mobile)
   const canvasRepresentant = setupSignatureCanvas(
     "signature-representant-canvas",
     "clear-representant"
@@ -90,6 +90,78 @@ document.addEventListener("DOMContentLoaded", () => {
       photos
     );
   });
+
+  function setupSignatureCanvas(canvasId, clearButtonId) {
+    const canvas = document.getElementById(canvasId);
+    const context = canvas.getContext("2d");
+    let isDrawing = false;
+
+    // Récupération de la position relative
+    function getPosition(event) {
+      const rect = canvas.getBoundingClientRect();
+      if (event.touches) {
+        // Gestion des touch events
+        return {
+          x: event.touches[0].clientX - rect.left,
+          y: event.touches[0].clientY - rect.top,
+        };
+      } else {
+        // Gestion des mouse events
+        return {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+      }
+    }
+
+    // Début du dessin
+    function startDrawing(event) {
+      isDrawing = true;
+      const pos = getPosition(event);
+      context.beginPath();
+      context.moveTo(pos.x, pos.y);
+    }
+
+    // Dessiner
+    function draw(event) {
+      if (!isDrawing) return;
+      const pos = getPosition(event);
+      context.lineTo(pos.x, pos.y);
+      context.stroke();
+    }
+
+    // Fin du dessin
+    function stopDrawing() {
+      isDrawing = false;
+      context.closePath();
+    }
+
+    // Gestion des événements pour la souris
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+
+    // Gestion des événements tactiles
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      startDrawing(e);
+    });
+    canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      draw(e);
+    });
+    canvas.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      stopDrawing(e);
+    });
+
+    // Bouton pour effacer le canvas
+    document.getElementById(clearButtonId).addEventListener("click", () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    return canvas;
+  }
 
   function genererPDF(
     date,
@@ -206,34 +278,5 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       pdf.save("bon_intervention.pdf");
     }
-  }
-
-  function setupSignatureCanvas(canvasId, clearButtonId) {
-    const canvas = document.getElementById(canvasId);
-    const context = canvas.getContext("2d");
-    let isDrawing = false;
-
-    canvas.addEventListener("mousedown", () => {
-      isDrawing = true;
-      context.beginPath();
-    });
-
-    canvas.addEventListener("mouseup", () => {
-      isDrawing = false;
-      context.closePath();
-    });
-
-    canvas.addEventListener("mousemove", (e) => {
-      if (isDrawing) {
-        context.lineTo(e.offsetX, e.offsetY);
-        context.stroke();
-      }
-    });
-
-    document.getElementById(clearButtonId).addEventListener("click", () => {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    });
-
-    return canvas;
   }
 });
