@@ -19,6 +19,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Initialisation des canvases pour les signatures
+  const canvasRepresentant = setupSignatureCanvas(
+    "signature-representant-canvas",
+    "clear-representant"
+  );
+  const canvasAgent = setupSignatureCanvas(
+    "signature-agent-canvas",
+    "clear-agent"
+  );
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
@@ -145,47 +155,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     y = pdf.lastAutoTable.finalY + 10;
 
-    // Signatures et commentaires
+    // Commentaires
     pdf.text("Commentaires :", leftX, y);
     const commentLines = pdf.splitTextToSize(commentaires, 170);
     pdf.text(commentLines, leftX, y + 5);
 
     y += commentLines.length * 7 + 10;
 
-    // Fonction pour ajouter les images
+    // Ajout des signatures
+    const signatureRepresentant = canvasRepresentant.toDataURL("image/png");
+    const signatureAgent = canvasAgent.toDataURL("image/png");
+
+    pdf.text("Signatures :", leftX, y);
+    y += 10;
+
+    pdf.text("Représentant :", leftX, y);
+    pdf.addImage(signatureRepresentant, "PNG", leftX, y + 5, 80, 50);
+
+    pdf.text("Agent EDF :", leftX + 100, y);
+    pdf.addImage(signatureAgent, "PNG", leftX + 100, y + 5, 80, 50);
+
+    y += 60;
+
+    // Fonction pour ajouter les photos
     async function ajouterPhotos() {
       for (const photo of photos) {
         if (photo) {
-          const imgData = await lireImage(photo); // Lecture asynchrone de l'image
-
-          const img = new Image();
-          img.src = imgData;
-
-          await new Promise((resolve) => {
-            img.onload = () => {
-              const maxWidth = 100; // Largeur maximale
-              const maxHeight = 100; // Hauteur maximale
-
-              let width = img.width;
-              let height = img.height;
-
-              const ratio = Math.min(maxWidth / width, maxHeight / height);
-              width *= ratio;
-              height *= ratio;
-
-              if (y + height > 280) {
-                pdf.addPage();
-                y = 20;
-              }
-
-              pdf.addImage(imgData, "JPEG", leftX, y, width, height);
-              y += height + 10;
-              resolve();
-            };
-          });
+          const imgData = await lireImage(photo);
+          pdf.addImage(imgData, "JPEG", leftX, y, 100, 100);
+          y += 110;
+          if (y > 280) {
+            pdf.addPage();
+            y = 20;
+          }
         }
       }
-
       pdf.save("bon_intervention.pdf");
     }
 
@@ -202,5 +206,34 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       pdf.save("bon_intervention.pdf");
     }
+  }
+
+  function setupSignatureCanvas(canvasId, clearButtonId) {
+    const canvas = document.getElementById(canvasId);
+    const context = canvas.getContext("2d");
+    let isDrawing = false;
+
+    canvas.addEventListener("mousedown", () => {
+      isDrawing = true;
+      context.beginPath();
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      isDrawing = false;
+      context.closePath();
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (isDrawing) {
+        context.lineTo(e.offsetX, e.offsetY);
+        context.stroke();
+      }
+    });
+
+    document.getElementById(clearButtonId).addEventListener("click", () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    return canvas;
   }
 });

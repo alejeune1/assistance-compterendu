@@ -82,6 +82,24 @@
         <label for="agent">Signature Agent EDF (Nom/Prénom) :</label>
         <input type="text" id="agent" required />
 
+        <h3>Signature du Représentant :</h3>
+        <canvas
+          id="signature-representant-canvas"
+          width="300"
+          height="150"
+          style="border: 1px solid #000"
+        ></canvas>
+        <button type="button" id="clear-representant">Effacer</button>
+
+        <h3>Signature de l'Agent EDF :</h3>
+        <canvas
+          id="signature-agent-canvas"
+          width="300"
+          height="150"
+          style="border: 1px solid #000"
+        ></canvas>
+        <button type="button" id="clear-agent">Effacer</button>
+
         <label for="commentaires">Commentaires :</label>
         <textarea id="commentaires" rows="4"></textarea>
 
