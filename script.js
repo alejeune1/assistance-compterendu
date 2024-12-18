@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("photos").addEventListener("change", (event) => {
       const previewContainer = document.getElementById("photo-preview");
-      previewContainer.innerHTML = ""; // Efface les anciennes prévisualisations
+      previewContainer.innerHTML = "";
 
       Array.from(event.target.files).forEach((file) => {
         if (file.type.startsWith("image/")) {
